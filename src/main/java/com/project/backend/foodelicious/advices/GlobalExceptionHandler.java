@@ -8,10 +8,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -94,5 +96,24 @@ public class GlobalExceptionHandler {
 
     private ResponseEntity<ApiResponse<?>> buildErrorResponseEntity(ApiError apiError) {
         return new ResponseEntity<>(ApiResponse.failure(apiError), apiError.getStatus());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<?>> handleMethodArgumentNotValidException(
+            MethodArgumentNotValidException ex) {
+
+        // Collect all field validation errors into one message
+        String message = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+
+        ApiError apiError = ApiError.builder()
+                .status(HttpStatus.BAD_REQUEST)
+                .message(message)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return buildErrorResponseEntity(apiError);
     }
 }
