@@ -15,14 +15,12 @@ import java.util.Date;
 @Service
 public class JWTService {
 
-    @Value("${jwt.secretKey}")
-    private String jwtSecretKey;
-
     // How long access token lives — 10 minutes
     private static final long ACCESS_TOKEN_EXPIRY = 1000 * 60 * 10;
-
     // How long refresh token lives — 6 months
     private static final long REFRESH_TOKEN_EXPIRY = 1000L * 60 * 60 * 24 * 30 * 6;
+    @Value("${jwt.secretKey}")
+    private String jwtSecretKey;
 
     private SecretKey getSecretKey() {
         return Keys.hmacShaKeyFor(jwtSecretKey.getBytes(StandardCharsets.UTF_8));

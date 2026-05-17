@@ -2,13 +2,16 @@ package com.project.backend.foodelicious.repositories;
 
 import com.project.backend.foodelicious.entities.DeliveryPartner;
 import com.project.backend.foodelicious.entities.User;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface DeliveryPartnerRepository {
+@Repository
+public interface DeliveryPartnerRepository extends JpaRepository<DeliveryPartner, Long> {
 
     Optional<DeliveryPartner> findByUser(User user);
 
