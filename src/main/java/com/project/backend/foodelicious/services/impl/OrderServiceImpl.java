@@ -402,7 +402,7 @@ public class OrderServiceImpl implements OrderService {
 
         orderRequestRepository.findByCustomerAndRestaurant(order.getCustomer(), order.getRestaurant())
                 .stream()
-                        .filter(req -> req.getOrderRequestStatus().equals(OrderRequestStatus.CONFIRMED))
+                .filter(req -> req.getOrderRequestStatus().equals(OrderRequestStatus.CONFIRMED))
                 .findFirst()
                 .ifPresent(req -> {
                     req.setOrderRequestStatus(OrderRequestStatus.CANCELLED);

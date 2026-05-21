@@ -60,7 +60,7 @@ public class RatingServiceImpl implements RatingService {
                         "Rating not found for order with id: " + orderId
                 ));
 
-        if(ratingEntity.getDeliveryPartnerRating() != null) {
+        if (ratingEntity.getDeliveryPartnerRating() != null) {
             throw new RuntimeException("Delivery partner rating already exists for order with id: " + orderId);
         }
 
@@ -101,7 +101,7 @@ public class RatingServiceImpl implements RatingService {
                         "Rating not found for order with id: " + orderId
                 ));
 
-        if(ratingEntity.getCustomerRating() != null) {
+        if (ratingEntity.getCustomerRating() != null) {
             throw new RuntimeException("Customer rating already exists for order with id: " + orderId);
         }
 

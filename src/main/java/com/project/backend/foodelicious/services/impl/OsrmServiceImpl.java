@@ -46,21 +46,21 @@ public class OsrmServiceImpl implements OsrmService {
             }
 
             log.warn("OSRM returned non-Ok code '{}' for route ({},{}) -> ({},{}). " +
-                    "Falling back to Haversine.",osrmResponse != null ? osrmResponse.getCode() : "null",
+                            "Falling back to Haversine.", osrmResponse != null ? osrmResponse.getCode() : "null",
                     fromLat, fromLon, toLat, toLon);
         } catch (Exception e) {
 
             log.warn("OSRM call failed for route ({},{}) -> ({},{}): {}. " +
-                    "Falling back to Haversine straight-line distance.",
+                            "Falling back to Haversine straight-line distance.",
                     fromLat, fromLon, toLat, toLon, e.getMessage());
         }
 
-        double haversineKm = haversineDistanceKm(fromLat,fromLon, toLat, toLon);
+        double haversineKm = haversineDistanceKm(fromLat, fromLon, toLat, toLon);
         log.info("Using Haversine fallback with 1.3x road factor: {} km -> {} km", haversineKm, haversineKm * 1.3);
         return haversineKm;
     }
 
-    private  double haversineDistanceKm(double fromLat, double fromLon, double toLat, double toLon) {
+    private double haversineDistanceKm(double fromLat, double fromLon, double toLat, double toLon) {
         final int EARTH_RADIUS_KM = 6371;
         double dLat = Math.toRadians(toLat - fromLat);
         double dLon = Math.toRadians(toLon - fromLon);

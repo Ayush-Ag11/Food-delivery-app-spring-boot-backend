@@ -30,23 +30,23 @@ public class DistanceBasedDeliveryFeeStrategy implements DeliveryFeeCalculationS
 
         Point deliveryLocation = orderRequest.getDeliveryLocation();
 
-       if(deliveryLocation == null) {
-           return FEE_UNDER_5KM;
-       }
+        if (deliveryLocation == null) {
+            return FEE_UNDER_5KM;
+        }
 
-       double resturantLat = restaurantLocation.getY();
-       double deliveryLat = deliveryLocation.getY();
-       double deliveryLon = deliveryLocation.getX();
-       double resturantLon = restaurantLocation.getX();
+        double resturantLat = restaurantLocation.getY();
+        double deliveryLat = deliveryLocation.getY();
+        double deliveryLon = deliveryLocation.getX();
+        double resturantLon = restaurantLocation.getX();
 
-       double distanceKm = osrmService.getRoadDistanceKm(resturantLat, resturantLon, deliveryLat, deliveryLon);
+        double distanceKm = osrmService.getRoadDistanceKm(resturantLat, resturantLon, deliveryLat, deliveryLon);
 
-       log.info("Delivery fee calculation : road distance = {} km for order request {}",
-               distanceKm, orderRequest.getId());
+        log.info("Delivery fee calculation : road distance = {} km for order request {}",
+                distanceKm, orderRequest.getId());
 
-       if (distanceKm <= 2) return FEE_UNDER_2KM;
-       if (distanceKm <= 5) return FEE_UNDER_5KM;
-       if (distanceKm <= 10) return FEE_UNDER_10KM;
-       return FEE_ABOVE_10KM;
+        if (distanceKm <= 2) return FEE_UNDER_2KM;
+        if (distanceKm <= 5) return FEE_UNDER_5KM;
+        if (distanceKm <= 10) return FEE_UNDER_10KM;
+        return FEE_ABOVE_10KM;
     }
 }

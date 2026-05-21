@@ -36,7 +36,7 @@ public class AdminController {
     public ResponseEntity<List<UserDto>> getAllUsers() {
         List<UserDto> users = userRepository.findAll()
                 .stream()
-                .map(user -> modelMapper.map(user,UserDto.class))
+                .map(user -> modelMapper.map(user, UserDto.class))
                 .toList();
 
         return new ResponseEntity<>(users, HttpStatus.OK);
