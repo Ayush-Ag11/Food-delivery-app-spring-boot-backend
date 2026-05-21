@@ -13,7 +13,7 @@ import java.util.Optional;
 @Repository
 public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
 
-    Optional<Restaurant> findByOwner(User owner);
+    List<Restaurant> findByOwner(User owner);
 
     // Find all open restaurants within radius of customer's location
     @Query(value = """

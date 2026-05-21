@@ -18,6 +18,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import org.locationtech.jts.geom.Point;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -51,6 +52,9 @@ public class OrderRequest extends BaseEntity {
 
     @Column(nullable = false)
     private String deliveryAddress;
+
+    @Column(columnDefinition = "geometry(Point,4326)")
+    private Point deliveryLocation;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

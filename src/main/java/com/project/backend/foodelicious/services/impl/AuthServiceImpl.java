@@ -145,8 +145,12 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponseDto refreshToken(HttpServletRequest request,
                                          HttpServletResponse response) {
 
-        // Extract refresh token from HttpOnly cookie
-        String refreshToken = Arrays.stream(request.getCookies())
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            throw new ResourceNotFoundException("Refresh token not found inside cookies");
+        }
+
+        String refreshToken = Arrays.stream(cookies)
                 .filter(cookie -> "refreshToken".equals(cookie.getName()))
                 .findFirst()
                 .map(Cookie::getValue)
@@ -166,5 +170,14 @@ public class AuthServiceImpl implements AuthService {
         String accessToken = jwtService.generateAccessToken(user);
 
         return new LoginResponseDto(accessToken);
+    }
+
+    @Override
+    public void logout(HttpServletResponse response) {
+        Cookie cookie = new Cookie("refreshToken", null);
+        cookie.setMaxAge(0);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        response.addCookie(cookie);
     }
 }

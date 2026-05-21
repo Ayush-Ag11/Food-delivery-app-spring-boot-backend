@@ -30,10 +30,13 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     public Wallet createNewWallet(User user) {
-        Wallet wallet = new Wallet();
-        wallet.setUser(user);
-        wallet.setBalance(BigDecimal.ZERO);
-        return walletRepository.save(wallet);
+        return walletRepository.findByUser(user)
+                .orElseGet(() -> {
+                    Wallet wallet = new Wallet();
+                    wallet.setUser(user);
+                    wallet.setBalance(BigDecimal.ZERO);
+                    return walletRepository.save(wallet);
+                });
     }
 
     @Override

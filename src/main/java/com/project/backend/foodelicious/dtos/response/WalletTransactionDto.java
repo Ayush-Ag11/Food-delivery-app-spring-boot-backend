@@ -14,5 +14,6 @@ public class WalletTransactionDto {
     private TransactionType transactionType;
     private TransactionMethod transactionMethod;
     private String transactionId;
-    private LocalDateTime timestamp;
+    private LocalDateTime createdAt;
+
 }

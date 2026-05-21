@@ -2,6 +2,8 @@ package com.project.backend.foodelicious.dtos.request;
 
 import com.project.backend.foodelicious.entities.enums.PaymentMethod;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -22,6 +24,16 @@ public class PlaceOrderRequestDto {
 
     @NotBlank(message = "Delivery address is required")
     private String deliveryAddress;
+
+    @NotNull(message = "Delivery latitude is required")
+    @DecimalMin(value = "-90.0", message = "Latitude must be >= -90")
+    @DecimalMax(value = "90.0",  message = "Latitude must be <= 90")
+    private Double deliveryLatitude;
+
+    @NotNull(message = "Delivery longitude is required")
+    @DecimalMin(value = "-180.0", message = "Longitude must be >= -180")
+    @DecimalMax(value = "180.0",  message = "Longitude must be <= 180")
+    private Double deliveryLongitude;
 
     @NotNull(message = "Payment method is required")
     private PaymentMethod paymentMethod;

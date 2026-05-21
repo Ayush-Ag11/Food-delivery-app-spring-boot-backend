@@ -1,13 +1,18 @@
 package com.project.backend.foodelicious.strategies.impl;
 
 import com.project.backend.foodelicious.entities.OrderRequest;
+import com.project.backend.foodelicious.services.OsrmService;
 import com.project.backend.foodelicious.strategies.DeliveryFeeCalculationStrategy;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Point;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
 @Component
+@Slf4j
+@RequiredArgsConstructor
 public class DistanceBasedDeliveryFeeStrategy implements DeliveryFeeCalculationStrategy {
 
     // Fee slabs based on distance
@@ -16,51 +21,32 @@ public class DistanceBasedDeliveryFeeStrategy implements DeliveryFeeCalculationS
     private static final BigDecimal FEE_UNDER_10KM = new BigDecimal("60.00");
     private static final BigDecimal FEE_ABOVE_10KM = new BigDecimal("80.00");
 
+    private final OsrmService osrmService;
+
     @Override
     public BigDecimal calculateDeliveryFee(OrderRequest orderRequest) {
 
-        // Get restaurant location
         Point restaurantLocation = orderRequest.getRestaurant().getLocation();
 
-        // For now we use restaurant location as proxy for delivery distance
-        // In enhancement phase — use actual customer delivery address coordinates
-        // Distance calculated using Haversine formula approximation
-        // PostGIS ST_Distance returns distance in meters for geography type
-        // Here we use a simplified straight-line distance
-        double distanceInKm = getDistanceInKm(restaurantLocation);
+        Point deliveryLocation = orderRequest.getDeliveryLocation();
 
-        if (distanceInKm <= 2) {
-            return FEE_UNDER_2KM;
-        } else if (distanceInKm <= 5) {
-            return FEE_UNDER_5KM;
-        } else if (distanceInKm <= 10) {
-            return FEE_UNDER_10KM;
-        } else {
-            return FEE_ABOVE_10KM;
-        }
-    }
+       if(deliveryLocation == null) {
+           return FEE_UNDER_5KM;
+       }
 
-    // Simplified distance calculation
-    // In enhancement phase — replace with actual customer address Point
-    private double getDistanceInKm(Point restaurantLocation) {
-        // Default city center coordinates — Meerut
-        double cityLat = 28.9845;
-        double cityLng = 77.7064;
+       double resturantLat = restaurantLocation.getY();
+       double deliveryLat = deliveryLocation.getY();
+       double deliveryLon = deliveryLocation.getX();
+       double resturantLon = restaurantLocation.getX();
 
-        double lat = restaurantLocation.getY();
-        double lng = restaurantLocation.getX();
+       double distanceKm = osrmService.getRoadDistanceKm(resturantLat, resturantLon, deliveryLat, deliveryLon);
 
-        // Haversine formula
-        final int EARTH_RADIUS_KM = 6371;
-        double dLat = Math.toRadians(lat - cityLat);
-        double dLng = Math.toRadians(lng - cityLng);
+       log.info("Delivery fee calculation : road distance = {} km for order request {}",
+               distanceKm, orderRequest.getId());
 
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-                + Math.cos(Math.toRadians(cityLat))
-                * Math.cos(Math.toRadians(lat))
-                * Math.sin(dLng / 2) * Math.sin(dLng / 2);
-
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return EARTH_RADIUS_KM * c;
+       if (distanceKm <= 2) return FEE_UNDER_2KM;
+       if (distanceKm <= 5) return FEE_UNDER_5KM;
+       if (distanceKm <= 10) return FEE_UNDER_10KM;
+       return FEE_ABOVE_10KM;
     }
 }

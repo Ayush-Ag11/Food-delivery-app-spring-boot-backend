@@ -31,15 +31,19 @@ import com.project.backend.foodelicious.strategies.DeliveryPartnerMatchingStrate
 import com.project.backend.foodelicious.strategies.OrderAssignmentStrategyManager;
 import com.project.backend.foodelicious.strategies.OrderFareCalculationStrategyManager;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.PrecisionModel;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -59,6 +63,8 @@ public class OrderServiceImpl implements OrderService {
     private final DeliveryPartnerMatchingStrategyManager matchingStrategyManager;
     private final OrderAssignmentStrategyManager assignmentStrategyManager;
     private final ModelMapper modelMapper;
+
+    private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
     @Override
     @Transactional
@@ -91,6 +97,10 @@ public class OrderServiceImpl implements OrderService {
         orderRequest.setDeliveryAddress(requestDto.getDeliveryAddress());
         orderRequest.setPaymentMethod(requestDto.getPaymentMethod());
         orderRequest.setOrderRequestStatus(OrderRequestStatus.PENDING);
+
+        Point deliveryLocation = geometryFactory.createPoint(new Coordinate(requestDto.getDeliveryLongitude(), requestDto.getDeliveryLatitude()));
+
+        orderRequest.setDeliveryLocation(deliveryLocation);
 
         OrderRequest savedRequest = orderRequestRepository.save(orderRequest);
 
@@ -340,6 +350,15 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderStatus(OrderStatus.CANCELLED);
         orderRepository.save(order);
 
+        orderRequestRepository.findByCustomerAndRestaurant(order.getCustomer(), order.getRestaurant())
+                .stream()
+                .filter(req -> req.getOrderRequestStatus().equals(OrderRequestStatus.CONFIRMED))
+                .findFirst()
+                .ifPresent(req -> {
+                    req.setOrderRequestStatus(OrderRequestStatus.CANCELLED);
+                    orderRequestRepository.save(req);
+                });
+
         // Free up the delivery partner
         DeliveryPartner deliveryPartner = order.getDeliveryPartner();
         deliveryPartner.setAvailable(true);
@@ -381,6 +400,15 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderStatus(OrderStatus.CANCELLED);
         orderRepository.save(order);
 
+        orderRequestRepository.findByCustomerAndRestaurant(order.getCustomer(), order.getRestaurant())
+                .stream()
+                        .filter(req -> req.getOrderRequestStatus().equals(OrderRequestStatus.CONFIRMED))
+                .findFirst()
+                .ifPresent(req -> {
+                    req.setOrderRequestStatus(OrderRequestStatus.CANCELLED);
+                    orderRequestRepository.save(req);
+                });
+
         // Free up the delivery partner
         deliveryPartner.setAvailable(true);
         deliveryPartnerRepository.save(deliveryPartner);
@@ -405,7 +433,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private String generateOtp() {
-        Random random = new Random();
+        SecureRandom random = new SecureRandom();
         int otp = random.nextInt(9000) + 1000; // always 4 digits
         return String.valueOf(otp);
     }

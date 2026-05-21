@@ -19,4 +19,6 @@ public interface AuthService {
                                               OnboardDeliveryPartnerRequestDto onboardDeliveryPartnerRequestDto);
 
     LoginResponseDto refreshToken(HttpServletRequest request, HttpServletResponse response);
+
+    void logout(HttpServletResponse response);
 }

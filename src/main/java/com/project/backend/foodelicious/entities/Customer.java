@@ -40,7 +40,7 @@ public class Customer extends BaseEntity {
     @JoinColumn(nullable = false, name = "user_id")
     private User user;
 
-    @Column(precision = 2, scale = 1)
+    @Column(precision = 3, scale = 2)
     private BigDecimal rating;
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)

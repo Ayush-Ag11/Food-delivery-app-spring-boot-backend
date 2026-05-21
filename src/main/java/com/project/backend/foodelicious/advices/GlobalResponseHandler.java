@@ -14,8 +14,10 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
     @Override
     public boolean supports(MethodParameter returnType,
                             Class<? extends HttpMessageConverter<?>> converterType) {
-        // Skip wrapping if the response is already an ApiResponse
-        return !returnType.getParameterType().equals(ApiResponse.class);
+
+        return !returnType.getParameterType().equals(ApiResponse.class)
+                && !returnType.getParameterType().equals(Void.class)
+                && !void.class.equals(returnType.getParameterType());
     }
 
     @Override
@@ -25,7 +27,10 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
                                   Class<? extends HttpMessageConverter<?>> selectedConverterType,
                                   ServerHttpRequest request,
                                   ServerHttpResponse response) {
-        // Wrap every successful controller response in ApiResponse.success()
+
+        if (body == null) {
+            return null;
+        }
         return ApiResponse.success(body);
     }
 }

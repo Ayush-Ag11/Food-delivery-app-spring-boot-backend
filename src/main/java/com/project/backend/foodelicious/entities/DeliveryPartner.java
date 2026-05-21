@@ -39,7 +39,7 @@ public class DeliveryPartner extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(precision = 2, scale = 1)
+    @Column(precision = 3, scale = 2)
     private BigDecimal rating;
 
     private boolean isAvailable;

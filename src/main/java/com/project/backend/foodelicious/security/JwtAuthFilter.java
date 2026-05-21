@@ -1,13 +1,18 @@
 package com.project.backend.foodelicious.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.backend.foodelicious.advices.ApiError;
+import com.project.backend.foodelicious.advices.ApiResponse;
 import com.project.backend.foodelicious.entities.User;
 import com.project.backend.foodelicious.services.UserService;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -15,6 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -48,33 +54,56 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         // Strip "Bearer " prefix to get raw token
         String token = requestTokenHeader.substring(7);
 
-        // Extract user ID from token
-        Long userId = jwtService.getUserIdFromToken(token);
+        try {
+            // Extract user ID from token
+            Long userId = jwtService.getUserIdFromToken(token);
 
-        // If we got a userId and no auth is already set in context
-        if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            // If we got a userId and no auth is already set in context
+            if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            // Load the user from DB
-            User user = (User) userService.loadUserById(userId);
+                // Load the user from DB
+                User user = (User) userService.loadUserById(userId);
 
-            // Create authentication token with user's authorities
-            UsernamePasswordAuthenticationToken authenticationToken =
-                    new UsernamePasswordAuthenticationToken(
-                            user,
-                            null,
-                            user.getAuthorities()
-                    );
+                // Create authentication token with user's authorities
+                UsernamePasswordAuthenticationToken authenticationToken =
+                        new UsernamePasswordAuthenticationToken(
+                                user,
+                                null,
+                                user.getAuthorities()
+                        );
 
-            // Attach request details (IP address, session ID etc.)
-            authenticationToken.setDetails(
-                    new WebAuthenticationDetailsSource().buildDetails(request)
-            );
+                // Attach request details (IP address, session ID etc.)
+                authenticationToken.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request)
+                );
 
-            // Set authentication in SecurityContext
-            // From this point Spring Security knows who made this request
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                // Set authentication in SecurityContext
+                // From this point Spring Security knows who made this request
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            }
+
+            filterChain.doFilter(request, response);
+        } catch (JwtException e) {
+
+            sendErrorResponse(response, HttpStatus.UNAUTHORIZED,
+                    "Invalid or expired Token. Please login again.");
+
+        } catch (Exception e) {
+            sendErrorResponse(response, HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Authentication error: " + e.getMessage());
         }
+    }
 
-        filterChain.doFilter(request, response);
+    private void sendErrorResponse(HttpServletResponse response, HttpStatus status, String message) throws IOException {
+
+        ApiError apiError = ApiError.builder()
+                .status(status)
+                .message(message)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        response.setContentType("application/json");
+        response.setStatus(status.value());
+        response.getWriter().write(new ObjectMapper().writeValueAsString(ApiResponse.failure(apiError)));
     }
 }

@@ -26,4 +26,6 @@ public interface OrderRequestRepository extends JpaRepository<OrderRequest, Long
             Customer customer,
             OrderRequestStatus status
     );
+
+    List<OrderRequest> findByCustomerAndRestaurant(Customer customer, Restaurant restaurant);
 }
